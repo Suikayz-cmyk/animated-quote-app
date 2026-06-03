@@ -1,7 +1,6 @@
-import HomeScreen from './src/screens/HomeScreen';
+import { GestureHandlerRootView} from 'react-native-gesture-handler';
 
-import { GestureHandlerRootView }
-from 'react-native-gesture-handler';
+import AppNavigator from './src/navigation/AppNavigator';
 
 export default function App() {
 
@@ -9,7 +8,7 @@ export default function App() {
     <GestureHandlerRootView
       style={{ flex: 1 }}
     >
-      <HomeScreen />
+      <AppNavigator />
     </GestureHandlerRootView>
   );
 }

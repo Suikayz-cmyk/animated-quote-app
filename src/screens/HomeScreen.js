@@ -12,31 +12,11 @@ import {
   loadArchivedQuotes,
   saveArchivedQuotes,
 } from '../storage/quoteStorage';
-import ArchiveScreen from '../screens/ArchiveScreen';
 
-export default function HomeScreen() {
+export default function HomeScreen({ navigation }) {
 
-  const [quotes, setQuotes] = useState([
-    {
-      id: '1',
-      text: 'Stay hungry, stay foolish.',
-      author: 'Steve Jobs',
-    },
-    {
-      id: '2',
-      text: 'Knowledge is power.',
-      author: 'Francis Bacon',
-    },
-    {
-      id: '3',
-      text: 'Never stop learning.',
-      author: 'Unknown',
-    },
-  ]);
-
-  const [archivedQuotes, setArchivedQuotes] = useState([]);
-
-  const [showArchive, setShowArchive] = useState(false);
+  const [quotes, setQuotes] = useState([]);
+  const [archivedQuotes, setArchivedQuotes] = useState([]); 
 
   const handleDelete = async (id) => {
     const updatedQuotes =
@@ -108,49 +88,39 @@ export default function HomeScreen() {
   }, []);
 
   const initialize = async () => {
+    await registerBackgroundTask();
 
-  await registerBackgroundTask();
+    const savedQuotes =
+      await loadQuotes();
 
-  const savedQuotes =
-    await loadQuotes();
+    const archives =
+      await loadArchivedQuotes();
 
-  const archives =
-    await loadArchivedQuotes();
+    setArchivedQuotes(archives);
 
-  setArchivedQuotes(archives);
+    if (savedQuotes.length > 0) {
 
-  if (savedQuotes.length > 0) {
+      setQuotes(savedQuotes);
+      return;
 
-    setQuotes(savedQuotes);
-    return;
+    }
 
-  }
+    const firstQuote =
+      await fetchRandomQuote();
 
-  const firstQuote =
-    await fetchRandomQuote();
+    if (!firstQuote) return;
 
-  if (!firstQuote) return;
+    const starterData = [
+      {
+        id: Date.now().toString(),
+        ...firstQuote,
+      },
+    ];
 
-  const starterData = [
-    {
-      id: Date.now().toString(),
-      ...firstQuote,
-    },
-  ];
+    await saveQuotes(starterData);
 
-  await saveQuotes(starterData);
-
-  setQuotes(starterData);
-};
-
-  if (showArchive) {
-  return (
-    <ArchiveScreen
-      archivedQuotes={archivedQuotes}
-      onBack={() => setShowArchive(false)}
-    />
-  );
-}
+    setQuotes(starterData);
+  };
 
   return (
     <View style={styles.container}>
@@ -171,7 +141,9 @@ export default function HomeScreen() {
       <TouchableOpacity
         style={styles.button}
         onPress={() =>
-          setShowArchive(true)
+          navigation.navigate(
+            'Archive'
+          )
         }
       >
         <Text style={styles.buttonText}>

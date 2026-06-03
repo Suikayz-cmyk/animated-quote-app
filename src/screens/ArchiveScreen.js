@@ -6,26 +6,33 @@ import {
   TouchableOpacity,
 } from 'react-native';
 
-export default function ArchiveScreen({
-  archivedQuotes,
-  onBack,
-}) {
+import { useEffect, useState } from 'react';
+
+import { loadArchivedQuotes } from '../storage/quoteStorage';
+
+export default function ArchiveScreen() {
+
+const [quotes,setQuotes] = useState([]);
+
+useEffect(() => {
+  loadData();
+}, []);
+
+const loadData = async () => {
+  const data =
+    await loadArchivedQuotes();
+  setQuotes(data);
+};
 
   return (
     <View style={styles.container}>
-        <TouchableOpacity
-            onPress={onBack}
-            style={styles.backButton}
-        >
-            <Text>Back</Text>
-        </TouchableOpacity>
 
       <Text style={styles.title}>
         Archived Quotes
       </Text>
 
       <FlatList
-        data={archivedQuotes}
+        data={quotes}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.card}>
@@ -72,9 +79,5 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontStyle: 'italic',
   },
-
-  backButton: {
-    marginBottom: 30,
- },
 
 });
