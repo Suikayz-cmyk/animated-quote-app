@@ -1,46 +1,55 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { useEffect, useState } from 'react';
+import {
+  View,
+  StyleSheet,
+  Text,
+  ActivityIndicator,
+} from 'react-native';
 
-export default function HomeScreen() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>
-        QuoteFlow
-      </Text>
-
-      <Text style={styles.quote}>
-        
-      </Text>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-
-  quote: {
-    textAlign: 'center',
-    fontSize: 18,
-  },
-});
-
-import { View, StyleSheet, Text } from 'react-native';
 import AnimatedCard from '../components/AnimatedCard';
 
+import {
+  saveQuote,
+  loadQuote,
+} from '../storage/quoteStorage';
+
 export default function HomeScreen() {
 
-  const quote =
-    'Jangan pernah menunda-nunda, karena kesempatan hanya datang sekali.';
+  const [quote, setQuote] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    initializeQuote();
+  }, []);
+
+  const initializeQuote = async () => {
+
+    const storedQuote = await loadQuote();
+
+    if (storedQuote) {
+
+      setQuote(storedQuote);
+
+    } else {
+
+      const defaultQuote =
+        'Jangan pernah menunda-nunda, karena kesempatan hanya datang sekali.';
+
+      await saveQuote(defaultQuote);
+
+      setQuote(defaultQuote);
+    }
+
+    setLoading(false);
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -62,6 +71,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 20,
     backgroundColor: '#f2f2f2',
+  },
+
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   title: {
