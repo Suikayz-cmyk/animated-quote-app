@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+/* import { useEffect, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -86,4 +86,37 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 
+});  */
+
+import { View, StyleSheet } from 'react-native';
+import SwipeableListItem from '../components/SwipeableListItem';
+
+export default function HomeScreen() {
+
+  const quotes = [
+    'Stay hungry, stay foolish.',
+    'Knowledge is power.',
+    'Never stop learning.',
+  ];
+
+  return (
+    <View style={styles.container}>
+
+      {quotes.map((quote, index) => (
+        <SwipeableListItem
+          key={index}
+          quote={quote}
+        />
+      ))}
+
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    justifyContent: 'center',
+  },
 });
