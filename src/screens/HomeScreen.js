@@ -1,8 +1,12 @@
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import SwipeableListItem from '../components/SwipeableListItem';
+
 import { fetchRandomQuote } from '../services/quoteService';
+import { registerBackgroundTask,} from '../services/backgroundTask';
+
+import { loadQuotes, saveQuotes,} from '../storage/quoteStorage';
 
 export default function HomeScreen() {
 
@@ -24,10 +28,14 @@ export default function HomeScreen() {
     },
   ]);
 
-  const handleDelete = (id) => {
-    setQuotes(prev =>
-      prev.filter(item => item.id !== id)
-    );
+  const handleDelete = async (id) => {
+    const updatedQuotes =
+      quotes.filter(
+        item => item.id !== id
+      );
+
+    setQuotes(updatedQuotes);
+    await saveQuotes(updatedQuotes);
   };
 
   const handleArchive = (id) => {
@@ -39,21 +47,51 @@ export default function HomeScreen() {
   };
 
   const handleNewQuote = async () => {
-
-    const newQuote = await fetchRandomQuote();
+    const newQuote =
+      await fetchRandomQuote();
 
     if (!newQuote) return;
 
     const quoteItem = {
       id: Date.now().toString(),
-      text: newQuote.text,
-      author: newQuote.author,
+      ...newQuote,
     };
 
-    setQuotes(prev => [
+    const updatedQuotes = [
       quoteItem,
-      ...prev,
-    ]);
+      ...quotes,
+    ];
+    setQuotes(updatedQuotes);
+    await saveQuotes(updatedQuotes);
+  };
+
+  useEffect(() => {
+    initialize();
+  }, []);
+
+  const initialize = async () => {
+    await registerBackgroundTask();
+    const savedQuotes =
+      await loadQuotes();
+
+    if (savedQuotes.length > 0) {
+      setQuotes(savedQuotes);
+      return;
+    }
+
+    const firstQuote =
+      await fetchRandomQuote();
+    if (!firstQuote) return;
+
+    const starterData = [
+      {
+        id: Date.now().toString(),
+        ...firstQuote,
+      },
+    ];
+
+    await saveQuotes(starterData);
+    setQuotes(starterData);
   };
 
   return (
