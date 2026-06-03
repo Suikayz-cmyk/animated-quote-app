@@ -9,13 +9,20 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  runOnJS,
 } from 'react-native-reanimated';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 export default function SwipeableListItem({
+  id,
   quote,
+  onDelete,
+  onArchive,
 }) {
+
+  const THRESHOLD = SCREEN_WIDTH * 0.7;
+
   const translateX = useSharedValue(0);
 
   const panGesture = Gesture.Pan()
@@ -25,23 +32,41 @@ export default function SwipeableListItem({
     })
 
     .onEnd(() => {
-      if (translateX.value > 120) {
-        translateX.value = withSpring(120);
-      } else if (translateX.value < -120) {
-        translateX.value = withSpring(-120);
-      } else {
-        translateX.value = withSpring(0);
-      }
+        if (translateX.value > THRESHOLD) {
+            translateX.value = withSpring(
+            SCREEN_WIDTH + 200
+            );
 
+            runOnJS(onArchive)(id);
+
+        } else if (
+            translateX.value < -THRESHOLD
+        ) {
+            translateX.value = withSpring(
+            -SCREEN_WIDTH - 200
+            );
+
+            runOnJS(onDelete)(id);
+        } else {
+            translateX.value = withSpring(0);
+        }
     });
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX: translateX.value,
-      },
-    ],
-  }));
+  const animatedStyle = useAnimatedStyle(() => {
+
+    const rotate = `${translateX.value / 20}deg`;
+
+    return {
+        transform: [
+        {
+            translateX: translateX.value,
+        },
+        {
+            rotate,
+        },
+        ],  
+    };
+});
 
   return (
     <View style={styles.container}>
