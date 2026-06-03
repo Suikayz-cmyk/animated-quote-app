@@ -6,7 +6,13 @@ import SwipeableListItem from '../components/SwipeableListItem';
 import { fetchRandomQuote } from '../services/quoteService';
 import { registerBackgroundTask,} from '../services/backgroundTask';
 
-import { loadQuotes, saveQuotes,} from '../storage/quoteStorage';
+import {
+  loadQuotes,
+  saveQuotes,
+  loadArchivedQuotes,
+  saveArchivedQuotes,
+} from '../storage/quoteStorage';
+import ArchiveScreen from '../screens/ArchiveScreen';
 
 export default function HomeScreen() {
 
@@ -28,6 +34,10 @@ export default function HomeScreen() {
     },
   ]);
 
+  const [archivedQuotes, setArchivedQuotes] = useState([]);
+
+  const [showArchive, setShowArchive] = useState(false);
+
   const handleDelete = async (id) => {
     const updatedQuotes =
       quotes.filter(
@@ -38,13 +48,41 @@ export default function HomeScreen() {
     await saveQuotes(updatedQuotes);
   };
 
-  const handleArchive = (id) => {
-    console.log('Archived:', id);
+  const handleArchive =
+    async (id) => {
+      const quoteToArchive =
+        quotes.find(
+          item => item.id === id
+        );
 
-    setQuotes(prev =>
-      prev.filter(item => item.id !== id)
-    );
-  };
+      if (!quoteToArchive) return;
+
+      const updatedArchives = [
+        quoteToArchive,
+        ...archivedQuotes,
+      ];
+
+      const updatedQuotes =
+        quotes.filter(
+          item => item.id !== id
+        );
+
+      setArchivedQuotes(
+        updatedArchives
+      );
+
+      setQuotes(
+        updatedQuotes
+      );
+
+      await saveArchivedQuotes(
+        updatedArchives
+      );
+
+      await saveQuotes(
+        updatedQuotes
+      );
+    };
 
   const handleNewQuote = async () => {
     const newQuote =
@@ -70,29 +108,49 @@ export default function HomeScreen() {
   }, []);
 
   const initialize = async () => {
-    await registerBackgroundTask();
-    const savedQuotes =
-      await loadQuotes();
 
-    if (savedQuotes.length > 0) {
-      setQuotes(savedQuotes);
-      return;
-    }
+  await registerBackgroundTask();
 
-    const firstQuote =
-      await fetchRandomQuote();
-    if (!firstQuote) return;
+  const savedQuotes =
+    await loadQuotes();
 
-    const starterData = [
-      {
-        id: Date.now().toString(),
-        ...firstQuote,
-      },
-    ];
+  const archives =
+    await loadArchivedQuotes();
 
-    await saveQuotes(starterData);
-    setQuotes(starterData);
-  };
+  setArchivedQuotes(archives);
+
+  if (savedQuotes.length > 0) {
+
+    setQuotes(savedQuotes);
+    return;
+
+  }
+
+  const firstQuote =
+    await fetchRandomQuote();
+
+  if (!firstQuote) return;
+
+  const starterData = [
+    {
+      id: Date.now().toString(),
+      ...firstQuote,
+    },
+  ];
+
+  await saveQuotes(starterData);
+
+  setQuotes(starterData);
+};
+
+  if (showArchive) {
+  return (
+    <ArchiveScreen
+      archivedQuotes={archivedQuotes}
+      onBack={() => setShowArchive(false)}
+    />
+  );
+}
 
   return (
     <View style={styles.container}>
@@ -107,6 +165,17 @@ export default function HomeScreen() {
       >
         <Text style={styles.buttonText}>
           New Quote
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() =>
+          setShowArchive(true)
+        }
+      >
+        <Text style={styles.buttonText}>
+          Archives
         </Text>
       </TouchableOpacity>
 
