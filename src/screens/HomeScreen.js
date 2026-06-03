@@ -8,7 +8,7 @@ export default function HomeScreen() {
       </Text>
 
       <Text style={styles.quote}>
-        "Jangan pernah menunda-nunda, karena kesempatan hanya datang sekali."
+        
       </Text>
     </View>
   );
@@ -32,4 +32,43 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 18,
   },
+});
+
+import { View, StyleSheet, Text } from 'react-native';
+import AnimatedCard from '../components/AnimatedCard';
+
+export default function HomeScreen() {
+
+  const quote =
+    'Jangan pernah menunda-nunda, karena kesempatan hanya datang sekali.';
+
+  return (
+    <View style={styles.container}>
+
+      <Text style={styles.title}>
+        QuoteFlow
+      </Text>
+
+      <AnimatedCard quote={quote} />
+
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20,
+    backgroundColor: '#f2f2f2',
+  },
+
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+
 });
