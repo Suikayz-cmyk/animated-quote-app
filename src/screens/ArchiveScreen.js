@@ -28,7 +28,7 @@ const loadData = async () => {
     <View style={styles.container}>
 
       <Text style={styles.title}>
-        Archived Quotes
+        Archived Quotes ({quotes.length})
       </Text>
 
       <FlatList

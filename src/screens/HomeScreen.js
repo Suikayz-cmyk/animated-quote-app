@@ -1,4 +1,4 @@
-import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, RefreshControl, ScrollView, } from 'react-native';
 import { useState, useEffect } from 'react';
 
 import SwipeableListItem from '../components/SwipeableListItem';
@@ -17,6 +17,8 @@ export default function HomeScreen({ navigation }) {
 
   const [quotes, setQuotes] = useState([]);
   const [archivedQuotes, setArchivedQuotes] = useState([]); 
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const handleDelete = async (id) => {
     const updatedQuotes =
@@ -65,10 +67,15 @@ export default function HomeScreen({ navigation }) {
     };
 
   const handleNewQuote = async () => {
+    setLoading(true);
+
     const newQuote =
       await fetchRandomQuote();
 
-    if (!newQuote) return;
+    if (!newQuote) {
+      setLoading(false);
+      return;
+    }
 
     const quoteItem = {
       id: Date.now().toString(),
@@ -79,8 +86,16 @@ export default function HomeScreen({ navigation }) {
       quoteItem,
       ...quotes,
     ];
+
     setQuotes(updatedQuotes);
     await saveQuotes(updatedQuotes);
+    setLoading(false);
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await handleNewQuote();
+    setRefreshing(false);
   };
 
   useEffect(() => {
@@ -127,6 +142,10 @@ export default function HomeScreen({ navigation }) {
 
       <Text style={styles.title}>
         QuoteFlow
+      </Text> 
+      
+      <Text style={styles.subtitle}>
+        Daily Inspiration
       </Text>
 
       <TouchableOpacity
@@ -134,7 +153,7 @@ export default function HomeScreen({ navigation }) {
         onPress={handleNewQuote}
       >
         <Text style={styles.buttonText}>
-          New Quote
+          {loading ? 'Loading...' : 'New Quote'}
         </Text>
       </TouchableOpacity>
 
@@ -151,8 +170,30 @@ export default function HomeScreen({ navigation }) {
         </Text>
       </TouchableOpacity>
 
-      <View style={styles.listContainer}>
-        {quotes.map(item => (
+      <Text style={styles.counter}>
+        Total Quotes: {quotes.length}
+      </Text>
+
+      <ScrollView
+        style={styles.listContainer}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        }
+      >
+        {quotes.length === 0 ? (
+
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>
+              No quotes available
+            </Text>
+          </View>
+
+        ) : (
+
+        quotes.map(item => (
           <SwipeableListItem
             key={item.id}
             id={item.id}
@@ -160,8 +201,9 @@ export default function HomeScreen({ navigation }) {
             onDelete={handleDelete}
             onArchive={handleArchive}
           />
-        ))}
-      </View>
+        ))
+        )}
+      </ScrollView>
 
     </View>
   );
@@ -180,7 +222,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginTop: 60,
-    marginBottom: 20,
+    marginBottom: 10,
   },
 
   button: {
@@ -198,6 +240,29 @@ const styles = StyleSheet.create({
 
   listContainer: {
     flex: 1,
+  },
+
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  emptyText: {
+    fontSize: 18,
+    color: '#777',
+  },
+
+  counter: {
+    textAlign: 'center',
+    marginBottom: 15,
+  },
+
+  subtitle: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 40,
+    color: '#555'
   },
 
 });
